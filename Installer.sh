@@ -1,10 +1,13 @@
 #!/bin/bash
 
 ##以下源地址可以自己替换以避免下载速度慢的问题
-MIRROR=mirrors.ustc.edu.cn
+MIRROR=mirrors.aliyun.com
 GENTOO_MIRROR=https://$MIRROR/gentoo
 STAGE_MIRROR=$GENTOO_MIRROR/releases/amd64/autobuilds
 PORTAGE_MIRROR=rsync://rsync.$MIRROR/gentoo-portage
+
+#退格删除字符 ^H
+stty erase '^H'
 
 ##判断用户
 if [ `whoami` != root ];then
@@ -59,7 +62,7 @@ read -p "是否有交换空间？Gentoo强烈建议使用 (y或回车  " SWAP
 if [ "$SWAP" == y ];then
 	fdisk -l
 	read -p "输入挂载点:  " SWAP
-	read -P "是否格式化 ? (y or Enter  " TMP
+	read -p "是否格式化 ? (y or Enter  " TMP
 	if [ "$TMP" == y ];then
 		mkswap -f $SWAP
 	fi
@@ -69,19 +72,19 @@ fi
 ##安装文件
 read -p "输入y使用openRC 回车使用systemd(如果你使用gnome桌面请务必选择systemd) " INIT
 cd /mnt/gentoo
-rm -f index.html
+rm -rf index.html
 if [ "$INIT" == y ];then
 	INIT=openrc
-	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64/ && grep -o stage3-amd64-.........tar.bz2 index.html | head -1)
+	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64/ && grep -o stage3-amd64-.........tar.xz index.html | head -1)
 	wget $STAGE_MIRROR/current-stage3-amd64/$LATEST
 	echo 解压中...
-	tar xjpf $LATEST --xattrs --numeric-owner
+	tar xpf $LATEST --xattrs --numeric-owner
 else
 	INIT=systemd 
-	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64-systemd/ && grep -o stage3-amd64-systemd-.........tar.bz2 index.html | head -1)
+	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64-systemd/ && grep -o stage3-amd64-systemd-.........tar.xz index.html | head -1)
 	wget $STAGE_MIRROR/current-stage3-amd64-systemd/$LATEST
 	echo 解压中...
-	tar xjpf $LATEST --xattrs --numeric-owner
+	tar xpf $LATEST --xattrs --numeric-owner
 fi
 
 rm $LATEST
@@ -95,33 +98,34 @@ fi
 sed -i '/CPU/d' /mnt/gentoo/etc/portage/make.conf
 sed i '/USE/d' /mnt/gentoo/etc/portage/make.conf
 sed -i 's/CFLAGS=\"-O2 -pipe\"/CFLAGS=\"-march=native -O2 -pipe\"/g' /mnt/gentoo/etc/portage/make.conf ##你可以在此根据你的CPU修改优化例如改成-march=haswell -O3 -pipe
+echo "MAKEOPTS="-j2" ">> /mnt/gentoo/etc/portage/make.conf ##在make.conf中声明MAKEOPTS
 echo "GENTOO_MIRROR=\"$GENTOO_MIRROR\" ">> /mnt/gentoo/etc/portage/make.conf ##如果此软件源巨慢或者你在国外 可以自行修改
 echo "L10N=\"en-US zh-CN\"
 LINGUAS=\"en_US zh_CN\"" >> /mnt/gentoo/etc/portage/make.conf
 
 ##Video Cards
-VIDEO=6
-while (($VIDEO!=1&&$VIDEO!=2&&$VIDEO!=3&&$VIDEO!=4&&$VIDEO!=5));do
-	echo "输入对应的显卡配置
-[1]  Intel
-[2]  Nvidia
-[3]  Intel/Nvidia
-[4]  AMD/ATI
-[5]  Intel/AMD"
-	read VIDEO
-	if [ "$VIDEO" == 1 ];then
-		echo VIDEO_CARDS=\"intel i965\" >> /mnt/gentoo/etc/portage/make.conf
-	elif [ "$VIDEO" == 2 ];then
-		echo VIDEO_CARDS=\"nvidia\" >> /mnt/gentoo/etc/portage/make.conf
-	elif [ "$VIDEO" == 3 ];then
-		echo VIDEO_CARDS=\"intel i965 nvidia\" >> /mnt/gentoo/etc/portage/make.conf
-	elif [ "$VIDEO" == 4 ];then
-		echo VIDEO_CARDS=\"radeon\" >> /mnt/gentoo/etc/portage/make.conf
-	elif [ "$VIDEO" == 5 ];then
-		echo VIDEO_CARDS=\"intel i965 radeon\" >> /mnt/gentoo/etc/portage/make.conf
-	else echo 请输入正确数字
-fi
-done
+#VIDEO=6
+#while (($VIDEO!=1&&$VIDEO!=2&&$VIDEO!=3&&$VIDEO!=4&&$VIDEO!=5));do
+#	echo "输入对应的显卡配置
+#[1]  Intel
+#[2]  Nvidia
+#[3]  Intel/Nvidia
+#[4]  AMD/ATI
+#[5]  Intel/AMD"
+#	read VIDEO
+#	if [ "$VIDEO" == 1 ];then
+#		echo VIDEO_CARDS=\"intel i965\" >> /mnt/gentoo/etc/portage/make.conf
+#	elif [ "$VIDEO" == 2 ];then
+#		echo VIDEO_CARDS=\"nvidia\" >> /mnt/gentoo/etc/portage/make.conf
+#	elif [ "$VIDEO" == 3 ];then
+#		echo VIDEO_CARDS=\"intel i965 nvidia\" >> /mnt/gentoo/etc/portage/make.conf
+#	elif [ "$VIDEO" == 4 ];then
+#		echo VIDEO_CARDS=\"radeon\" >> /mnt/gentoo/etc/portage/make.conf
+#	elif [ "$VIDEO" == 5 ];then
+#		echo VIDEO_CARDS=\"intel i965 radeon\" >> /mnt/gentoo/etc/portage/make.conf
+#	else echo 请输入正确数字
+#fi
+#done
 
 mkdir /mnt/gentoo/etc/portage/repos.conf
 echo "[DEFAULT]
@@ -144,4 +148,4 @@ cp /etc/resolv.conf /mnt/gentoo/etc/
 cd root/
 wget https://raw.githubusercontent.com/YangMame/Gentoo-Installer/master/Config.sh
 chmod +x Config.sh
-chroot /mnt/gentoo /root/Config.sh $FILESYSTEM $INIT $VIDEO
+chroot /mnt/gentoo /root/Config.sh $FILESYSTEM $INIT #$VIDEO
