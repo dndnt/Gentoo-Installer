@@ -72,22 +72,22 @@ fi
 ##安装文件
 read -p "输入y使用openRC 回车使用systemd(如果你使用gnome桌面请务必选择systemd) " INIT
 cd /mnt/gentoo
-rm -rf index.html
+#rm -rf index.html
 if [ "$INIT" == y ];then
-	INIT=openrc
-	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64/ && grep -o stage3-amd64-.........tar.xz index.html | head -1)
-	wget $STAGE_MIRROR/current-stage3-amd64/$LATEST
+#	INIT=openrc
+#	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64/ && grep -o stage3-amd64-.........tar.xz index.html | head -1)
+	wget https://mirrors.aliyun.com/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20180812T214502Z.tar.xz
 	echo 解压中...
-	tar xpf $LATEST --xattrs --numeric-owner
-else
-	INIT=systemd 
-	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64-systemd/ && grep -o stage3-amd64-systemd-.........tar.xz index.html | head -1)
-	wget $STAGE_MIRROR/current-stage3-amd64-systemd/$LATEST
-	echo 解压中...
-	tar xpf $LATEST --xattrs --numeric-owner
-fi
+	tar xpf stage3-amd64-20180812T214502Z.tar.xz --xattrs --numeric-owner
+#else
+#	INIT=systemd 
+#	LATEST=$(wget -q $STAGE_MIRROR/current-stage3-amd64-systemd/ && grep -o stage3-amd64-systemd-.........tar.xz index.html | head -1)
+#	wget $STAGE_MIRROR/current-stage3-amd64-systemd/$LATEST
+#	echo 解压中...
+#	tar xpf $LATEST --xattrs --numeric-owner
+#fi
 
-rm $LATEST
+#rm $LATEST
 
 if [ "$BOOT" == y ];then
 	umount $boot
