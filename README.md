@@ -10,4 +10,4 @@ Boot:Legacy,UEFI
 
 Kernel:Genkernel,Download From Internet,Config By Yourself
 
-下载地址：https://raw.githubusercontent.com/YangMame/Gentoo-Installer/master/Installer.sh
+下载地址：https://raw.githubusercontent.com/dndnt/Gentoo-Installer/master/Installer.sh
